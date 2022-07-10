@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+//Bussiness class vehicle logic
 @Service
 public class VehicleService {
 
@@ -46,11 +47,13 @@ public class VehicleService {
 
     //search on basis of payload
     public List<Vehicle> search(final SearchRequestDTO dto){
-        final SearchRequest request = SearchUtil.buildSearchRequest(Indices.VEHICLE_INDEX, dto);
+        final SearchRequest request = SearchUtil.buildSearchRequest(Indices.VEHICLE_INDEX, dto); //returns filtered data
 
+        //returns list of vehicles mapped in json format
         return searchInternal(request);
     }
 
+    //search on basis of time range query
     public List<Vehicle> getAllVehiclesCreatedSince(final Date date){
         final SearchRequest request = SearchUtil.buildSearchRequest(
                 Indices.VEHICLE_INDEX,
@@ -60,6 +63,8 @@ public class VehicleService {
         return searchInternal(request);
     }
 
+
+    //search on basis of time range and payload
     public List<Vehicle> searchCreatedSince(final SearchRequestDTO dto, final Date date){
         final SearchRequest request = SearchUtil.buildSearchRequest(
                 Indices.VEHICLE_INDEX,
@@ -68,6 +73,8 @@ public class VehicleService {
         );
         return searchInternal(request);
     }
+
+    //search requests in elastic search
     private List<Vehicle> searchInternal(SearchRequest request) {
         if(request ==null){
             LOG.error("Failed");
@@ -75,15 +82,15 @@ public class VehicleService {
         }
 
         try{
-            final SearchResponse response = client.search(request, RequestOptions.DEFAULT);
-            final SearchHit[] searchHits = response.getHits().getHits();
+            final SearchResponse response = client.search(request, RequestOptions.DEFAULT); //searches in client  based on request
+            final SearchHit[] searchHits = response.getHits().getHits();       //successful hits corresponding to search
             final List<Vehicle> vehicles = new ArrayList<>(searchHits.length);
             for(SearchHit hit: searchHits){
                 vehicles.add(
-                        MAPPER.readValue(hit.getSourceAsString(), Vehicle.class)
+                        MAPPER.readValue(hit.getSourceAsString(), Vehicle.class)  //convert hits to vehicle class
                 );
             }
-            return vehicles;
+            return vehicles;   //return the result
         }catch(Exception e){
             LOG.error(e.getMessage(), e);
             return Collections.emptyList();
